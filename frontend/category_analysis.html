@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Category Analysis</title>
+    <style>
+        body {
+            padding: 20px;
+        }
+        .plot {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Category Analysis</h1>
+        <div class="form-group">
+            <label for="category-select">Select a Category:</label>
+            <select id="category-select" class="form-control">
+                <option value="Books">Books</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Beauty">Beauty</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Home & Kitchen">Home & Kitchen</option>
+            </select>
+        </div>
+        <button id="load-category" class="btn btn-primary btn-lg btn-block">Get Analysis</button>
+        <div id="category-results" class="mt-4"></div>
+    </div>
+
+    <script>
+        document.getElementById('load-category').onclick = async function() {
+            const category = document.getElementById('category-select').value;
+            const response = await fetch(`http://127.0.0.1:8000/api/category/${category}`);
+
+            if (!response.ok) {
+                document.getElementById('category-results').innerHTML = 
+                    `<div class="alert alert-danger">Failed to load data. Please try again.</div>`;
+                return;
+            }
+
+            const data = await response.json();
+            const categoryDiv = document.getElementById('category-results');
+
+            if (data.error) {
+                categoryDiv.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+
+            // Formatting "Top Products" as a list
+            let topProductsHTML = `<ul class="list-group">`;
+            for (const [product, count] of Object.entries(data.top_products)) {
+                topProductsHTML += `<li class="list-group-item d-flex justify-content-between">
+                                        <span>${product}</span> 
+                                        <span class="badge badge-primary badge-pill">${count} sold</span>
+                                    </li>`;
+            }
+            topProductsHTML += `</ul>`;
+
+            // Formatting "Highest Rated Product"
+            let highestRatedProductHTML = `
+                <div class="card bg-light p-3">
+                    <h5>${data.highest_rated_product["Product Name"]}</h5>
+                    <p>Customer Rating: <strong>${data.highest_rated_product["Customer Rating"]} ⭐</strong></p>
+                </div>
+            `;
+
+            // Formatting "Highest Revenue Low Sales Product"
+            let highestRevenueLowSalesHTML = `
+                <div class="card bg-light p-3">
+                    <h5>${data.highest_revenue_low_sales_product["Product Name"]}</h5>
+                    <p>Revenue: <strong>₹${data.highest_revenue_low_sales_product["Total Sales (INR)"].toLocaleString()}</strong></p>
+                </div>
+            `;
+
+            // Formatting "Price Range Distribution"
+            let priceRangeDistributionHTML = `<ul class="list-group">`;
+            for (const [range, count] of Object.entries(data.price_range_distribution)) {
+                priceRangeDistributionHTML += `<li class="list-group-item">
+                                                    <span>${range}</span> 
+                                                    <span class="badge badge-secondary badge-pill">${count} products</span>
+                                                </li>`;
+            }
+            priceRangeDistributionHTML += `</ul>`;
+
+            // Formatting "Category Sales Comparison"
+            let categorySalesComparisonHTML = `<ul class="list-group">`;
+            for (const [categoryName, sales] of Object.entries(data.category_sales_comparison)) {
+                categorySalesComparisonHTML += `<li class="list-group-item d-flex justify-content-between">
+                                                    <span>${categoryName}</span> 
+                                                    <span class="badge badge-info badge-pill">₹${sales.toLocaleString()}</span>
+                                                </li>`;
+            }
+            categorySalesComparisonHTML += `</ul>`;
+
+            // Displaying the data properly
+            categoryDiv.innerHTML = `
+                <h3 class="mt-3">Category: <strong>${category}</strong></h3>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow-sm">
+                            <h4>Total Revenue</h4>
+                            <p>₹${data.total_revenue.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card p-3 shadow-sm">
+                            <h4>Avg Price of Top Sold Products</h4>
+                            <p>₹${data.average_price_of_top_sold_products 
+                                ? data.average_price_of_top_sold_products.toLocaleString() 
+                                : 'N/A'}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-3 mt-3 shadow-sm">
+                    <h4>Average Customer Rating: ${data.avg_rating.toFixed(2)} ⭐</h4>
+                </div>
+
+                <div class="card p-3 mt-3 shadow-sm">
+                    <h4>Top Products</h4>
+                    ${topProductsHTML}
+                </div>
+
+                <div class="mt-3">
+                    <h4>Highest Rated Product</h4>
+                    ${highestRatedProductHTML}
+                </div>
+
+                <div class="mt-3">
+                    <h4>Highest Revenue Product</h4>
+                    ${highestRevenueLowSalesHTML}
+                </div>
+
+                <div class="mt-3">
+                    <h4>Price Range Distribution</h4>
+                    ${priceRangeDistributionHTML}
+                </div>
+
+                <div class="mt-3">
+                    <h4>Category Sales Comparison</h4>
+                    ${categorySalesComparisonHTML}
+                </div>
+            `;
+        };
+    </script>
+</body>
+</html>

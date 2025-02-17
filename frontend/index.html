@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Summary Analysis</title>
+    <style>
+        body {
+            padding: 20px;
+        }
+        .summary-section {
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .summary-section h3 {
+            margin-bottom: 15px;
+        }
+        .summary-section pre {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Summary Analysis</h1>
+        <button id="load-summary" class="btn btn-primary btn-lg btn-block">Get Analysis</button>
+        <div id="summary-results" class="mt-4"></div>
+    </div>
+
+    <script>
+        document.getElementById('load-summary').onclick = async function() {
+            const response = await fetch('http://localhost:8000/api/summary');
+            const data = await response.json();
+            const summaryDiv = document.getElementById('summary-results');
+            
+            // Format the summary statistics nicely
+            const summaryStatistics = {
+                "Total Revenue": `₹${data["Sales Summary_Total Revenue"].toLocaleString(undefined, {minimumFractionDigits: 2})}`,
+                "Total Orders": data["Sales Summary_Total Orders"],
+                "Total Quantity Sold": data["Sales Summary_Total Quantity Sold"],
+                "Average Selling Price": `₹${data["Average Selling Price"].toLocaleString(undefined, {minimumFractionDigits: 2})}`
+            };
+
+            // Create HTML for summary statistics
+            let summaryHtml = `
+                <div class="summary-section">
+                    <h3>Summary Statistics 📝</h3>
+                    <h4>Total Revenue: ${summaryStatistics["Total Revenue"]}</h4>
+                    <h4>Total Orders: ${summaryStatistics["Total Orders"]}</h4>
+                    <h4>Total Quantity Sold: ${summaryStatistics["Total Quantity Sold"]}</h4>
+                    <h4>Average Selling Price: ${summaryStatistics["Average Selling Price"]}</h4>
+                </div>
+            `;
+
+            // Create HTML for top-selling products
+            summaryHtml += `
+                <div class="summary-section">
+                    <h3>Top Selling Products 📈</h3>
+                    <ul>
+                        <li>Educational Book📚 - ${data["Product Sales_Top Selling Products_Educational Book"]}</li>
+                        <li>Laptop💻 - ${data["Product Sales_Top Selling Products_Laptop"]}</li>
+                        <li>Table Lamp💡 - ${data["Product Sales_Top Selling Products_Table Lamp"]}</li>
+                        <li>Fiction Novel📖 - ${data["Product Sales_Top Selling Products_Fiction Novel"]}</li>
+                        <li>Smartwatch⌚ - ${data["Product Sales_Top Selling Products_Smartwatch"]}</li>
+                    </ul>
+                </div>
+            `;
+
+            // Create HTML for least-selling products
+            summaryHtml += `
+                <div class="summary-section">
+                    <h3>Least Selling Products 📉</h3>
+                    <ul>
+                        <li>Bedsheet🛏️ - ${data["Product Sales_Least Selling Products_Bedsheet"]}</li>
+                        <li>Cookbook📚 - ${data["Product Sales_Least Selling Products_Cookbook"]}</li>
+                        <li>Shampoo🧴 - ${data["Product Sales_Least Selling Products_Shampoo"]}</li>
+                        <li>Dress👗 - ${data["Product Sales_Least Selling Products_Dress"]}</li>
+                        <li>Hair Dryer💇‍♀️ - ${data["Product Sales_Least Selling Products_Hair Dryer"]}</li>
+                    </ul>
+                </div>
+            `;
+
+            // Create HTML for revenue by category
+            summaryHtml += `
+                <div class="summary-section">
+                    <h3>Revenue by Category 💰</h3>
+                    <ul>
+                        <li>Beauty💄 - ₹${data["Revenue by Category_Beauty"].toLocaleString()}</li>
+                        <li>Books📚 - ₹${data["Revenue by Category_Books"].toLocaleString()}</li>
+                        <li>Clothing👕 - ₹${data["Revenue by Category_Clothing"].toLocaleString()}</li>
+                        <li>Electronics📱 - ₹${data["Revenue by Category_Electronics"].toLocaleString()}</li>
+                        <li>Home & Kitchen🍽️ - ₹${data["Revenue by Category_Home & Kitchen"].toLocaleString()}</li>
+                    </ul>
+                </div>
+            `;
+
+            // Create HTML for payment methods
+            summaryHtml += `
+                <div class="summary-section">
+                    <h3>Payment Methods 💳</h3>
+                    <ul>
+                        <li>UPI - ${data["Payment Methods_UPI"]}</li>
+                        <li>Wallet - ${data["Payment Methods_Wallet"]}</li>
+                        <li>Debit Card - ${data["Payment Methods_Debit Card"]}</li>
+                        <li>COD - ${data["Payment Methods_COD"]}</li>
+                        <li>Net Banking - ${data["Payment Methods_Net Banking"]}</li>
+                        <li>Credit Card - ${data["Payment Methods_Credit Card"]}</li>
+                    </ul>
+                </div>
+            `;
+
+            // Append the summary to the results div
+            summaryDiv.innerHTML = summaryHtml;
+        };
+    </script>
+</body>
+</html>
